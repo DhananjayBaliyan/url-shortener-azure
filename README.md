@@ -1,7 +1,6 @@
 # Shortly: A Cloud-Native URL Shortener on Kubernetes
 
-![Shortly Application Screenshot](https://i.imgur.com/rL7nQfD.png)
-*(Note: Replace this with a link to your own screenshot!)*
+![Shortly Application Screenshot](shortly_main.jpg)
 
 ## 🚀 Project Overview
 
