@@ -1,0 +1,36 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shortly-ingress
+spec:
+  ingressClassName: nginx 
+  rules:
+  - http:
+      paths:
+      # Rule 1: Requests for /api/... go to the backend
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: backend-api-service
+            port:
+              number: 5001
+      
+      # Rule 2: Requests for the EXACT path / go to the frontend
+      - path: /
+        pathType: Exact
+        backend:
+          service:
+            name: frontend-service
+            port:
+              number: 80
+
+      # Rule 3 (NEW): All other requests also go to the frontend
+      # This will catch your short codes like /mWAaAt
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend-service
+            port:
+              number: 80
