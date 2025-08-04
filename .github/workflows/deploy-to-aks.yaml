@@ -1,0 +1,64 @@
+# This is the GitHub Actions workflow file.
+# It defines the automated CI/CD pipeline.
+
+name: Build and Deploy to AKS
+
+# This section defines when the workflow will run.
+# It triggers on any push to the 'main' branch.
+on:
+  push:
+    branches:
+      - main
+
+# These are environment variables that will be used throughout the workflow.
+# You MUST replace these with your actual resource names.
+env:
+  AZURE_RESOURCE_GROUP: k8s-portfolio-rg
+  AZURE_CONTAINER_REGISTRY: dhananjayk8sprojectacr
+  AZURE_CLUSTER_NAME: shortly-cluster
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest # The workflow will run on a fresh virtual machine provided by GitHub.
+    steps:
+    # Step 1: Check out the code from your repository
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Step 2: Log in to Azure using the secret we created
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # Step 3: Build and push the FRONTEND Docker image
+    - name: Build and push frontend image to ACR
+      run: |
+        az acr build --registry ${{ env.AZURE_CONTAINER_REGISTRY }} --image frontend-service:${{ github.sha }} --file ./frontend/Dockerfile ./frontend
+
+    # Step 4: Build and push the BACKEND Docker image
+    - name: Build and push backend image to ACR
+      run: |
+        az acr build --registry ${{ env.AZURE_CONTAINER_REGISTRY }} --image backend-service:${{ github.sha }} --file ./backend/Dockerfile ./backend
+
+    # Step 5: Update the deployment files with the new image tags
+    # This command finds the 'image:' line and replaces the tag with the unique commit ID (github.sha)
+    - name: Update Kubernetes manifests with new image tags
+      run: |
+        sed -i 's|image: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/frontend-service:.*|image: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/frontend-service:${{ github.sha }}|' frontend-deployment.yaml
+        sed -i 's|image: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/backend-service:.*|image: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/backend-service:${{ github.sha }}|' backend-deployment.yaml
+
+    # Step 6: Connect to the AKS cluster
+    - name: Set AKS context
+      uses: azure/aks-set-context@v3
+      with:
+        resource-group: ${{ env.AZURE_RESOURCE_GROUP }}
+        cluster-name: ${{ env.AZURE_CLUSTER_NAME }}
+
+    # Step 7: Deploy all the updated configurations to Kubernetes
+    - name: Deploy to AKS
+      run: |
+        kubectl apply -f redis-deployment.yaml
+        kubectl apply -f backend-deployment.yaml
+        kubectl apply -f frontend-deployment.yaml
+        kubectl apply -f ingress.yaml
