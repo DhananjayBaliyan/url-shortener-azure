@@ -23,8 +23,7 @@ This project utilizes a modern, cloud-native architecture designed for scalabili
 
 This diagram illustrates the flow of traffic from a user's browser through the Azure cloud infrastructure to the appropriate microservice.
 
-![Azure Architecture Diagram](https://i.imgur.com/your-azure-diagram.png)
-*(**Action:** Create this diagram in draw.io, export it as a PNG, upload it to a service like Imgur, and replace this link!)*
+![Azure Architecture Diagram](Azure Architecture Diagram.jpg)
 
 **What to include in the diagram:**
 * A "User" icon outside the cloud.
@@ -39,8 +38,7 @@ This diagram illustrates the flow of traffic from a user's browser through the A
 
 This diagram shows how the same containerized services are run locally for development and testing using Docker Compose.
 
-![Docker Compose Architecture Diagram](https://i.imgur.com/your-docker-compose-diagram.png)
-*(**Action:** Create this diagram in draw.io and replace this link!)*
+![Docker Compose Architecture Diagram](Docker Compose Architecture Diagram.jpg)
 
 **What to include in the diagram:**
 * A box for "Your Local Machine".
