@@ -1,121 +1,205 @@
-# Shortly: A Cloud-Native URL Shortener on Kubernetes
+Shortly: A Cloud-Native URL Shortener on Kubernetes
 
 ![Shortly Application Screenshot](shortly_main.jpg)
 
-## 🚀 Project Overview
-
-**Shortly** is a fully functional URL shortening microservice application built from the ground up and deployed on Microsoft Azure. This project demonstrates a comprehensive, hands-on understanding of modern cloud engineering and DevOps principles, including containerization, Kubernetes orchestration, microservice architecture, and cloud networking.
+🚀 Project Overview
+Shortly is a fully functional URL shortening microservice application, built from the ground up and deployed on Microsoft Azure. This project demonstrates a comprehensive, hands-on understanding of modern cloud engineering and DevOps principles, including containerization, Kubernetes orchestration, CI/CD automation, and resilient cloud networking.
 
 The application is composed of three core, decoupled services:
-1.  **Frontend Service:** A Python Flask and JavaScript single-page application (SPA) featuring GSAP animations that provides the user interface for creating and viewing shortened links.
-2.  **Backend API Service:** A Python Flask API that handles the core logic for generating unique short codes, storing URL mappings, and retrieving them for redirection.
-3.  **Database Service:** A Redis instance for high-performance, in-memory storage of URL mappings, ensuring fast lookups and redirects.
 
-All services are deployed as versioned containers within an Azure Kubernetes Service (AKS) cluster and are exposed to the internet through a single, robust NGINX Ingress controller.
+Frontend Service: A Python Flask and JavaScript single-page application (SPA) featuring GSAP animations that provides the user interface for creating and viewing shortened links.
 
----
+Backend API Service: A Python Flask API that handles the core logic for generating unique short codes, storing URL mappings in a database, and retrieving them for redirection.
 
-## 🏗️ Technical Architecture
+Database Service: A Redis instance for high-performance, in-memory storage of URL mappings, ensuring fast lookups and redirects.
 
-This project utilizes a modern, cloud-native architecture designed for scalability, resilience, and maintainability. The infrastructure is fully defined through declarative YAML manifests.
+All services are deployed as versioned containers within an Azure Kubernetes Service (AKS) cluster. The entire deployment process is automated through a GitHub Actions CI/CD pipeline, ensuring consistent and reliable releases.
 
-### Cloud Deployment Architecture (Azure)
+🏗️ Technical Architecture
+This project utilizes a modern, cloud-native architecture designed for scalability, resilience, and maintainability. The infrastructure is fully defined through declarative YAML manifests and automated with a CI/CD pipeline.
 
-This diagram illustrates the flow of traffic from a user's browser through the Azure cloud infrastructure to the appropriate microservice.
+Cloud Deployment Architecture (Azure & GitHub Actions)
+This diagram illustrates the flow of a code change from a git push to a live deployment on Azure, and how a user interacts with the final application.
 
-![Azure Architecture Diagram](https://i.imgur.com/your-azure-diagram.png)
-*(**Action:** Create this diagram in draw.io, export it as a PNG, upload it to a service like Imgur, and replace this link!)*
+graph TD
+    subgraph GitHub
+        direction LR
+        DEV[Developer] -- "1. git push" --> GHA[GitHub Actions Workflow]
+    end
 
-**What to include in the diagram:**
-* A "User" icon outside the cloud.
-* An arrow to the "NGINX Ingress Controller" (with its Public IP).
-* The Ingress routing traffic based on the path:
-    * `/` requests go to the `Frontend Service`.
-    * `/api` requests go to the `Backend Service`.
-* Boxes for the `Frontend Pods`, `Backend Pod`, and `Redis Pod` inside the AKS Cluster.
-* Show the `Backend Service` communicating with the `Redis Service`.
+    subgraph "Azure Cloud (Resource Group: ks-portfolio-rg)"
+        ACR[Azure Container Registry]
+        
+        subgraph "AKS Cluster: shortly-cluster"
+            NGINX[NGINX Ingress Controller]
 
-### Local Development Architecture (Docker Compose)
+            subgraph "Frontend Pods"
+                direction LR
+                FP1(Frontend)
+                FP2(Frontend)
+            end
 
-This diagram shows how the same containerized services are run locally for development and testing using Docker Compose.
+            subgraph "Backend Pod"
+                BP1(Backend)
+            end
+            
+            subgraph "Database Pod"
+                DB1(Redis)
+            end
 
-![Docker Compose Architecture Diagram](https://i.imgur.com/your-docker-compose-diagram.png)
-*(**Action:** Create this diagram in draw.io and replace this link!)*
+            FSVC[Frontend Service]
+            BSVC[Backend Service]
+            RSVC[Redis Service]
+            
+            NGINX -- "path: /" --> FSVC
+            NGINX -- "path: /api" --> BSVC
+            
+            FSVC --> FP1 & FP2
+            BSVC --> BP1
+            BP1 -- "reads/writes to" --> RSVC
+            RSVC --> DB1
+        end
+    end
+    
+    subgraph Internet
+        U[User's Browser]
+    end
 
-**What to include in the diagram:**
-* A box for "Your Local Machine".
-* Inside, show the Browser accessing `localhost:8080`.
-* Show a `Docker Network`.
-* Inside the network, have three boxes: `Frontend Container`, `Backend Container`, and `Redis Container`.
-* Show the `Frontend Container` communicating with the `Backend Container` over the Docker Network.
-* Show the `Backend Container` communicating with the `Redis Container`.
+    GHA -- "2. Builds & Pushes Images" --> ACR
+    GHA -- "3. Deploys to AKS (kubectl apply)" --> NGINX
+    
+    U -- "4. Accesses Public IP" --> NGINX
 
----
+    style DEV fill:#d1e7dd,stroke:#333,stroke-width:2px
+    style U fill:#d1e7dd,stroke:#333,stroke-width:2px
 
-## 🛠️ Tech Stack & Key Concepts
+Local Development Architecture (Docker Compose)
+This diagram shows how the same containerized services are run locally for development and testing using Docker Compose, ensuring consistency between environments.
 
-| Category | Technology / Concept |
-| :--- | :--- |
-| **Cloud Provider** | Microsoft Azure |
-| **Containerization** | Docker, Docker Compose |
-| **Orchestration** | Azure Kubernetes Service (AKS) |
-| **Container Registry** | Azure Container Registry (ACR) |
-| **Networking** | NGINX Ingress Controller, Kubernetes Services |
-| **Backend** | Python, Flask, Redis |
-| **Frontend** | Python, Flask, JavaScript, HTML/CSS, GSAP |
-| **Deployment** | Declarative YAML, `kubectl`, Helm |
-| **CI/CD** | Local build/push workflow using Docker & Azure CLI |
+graph TD
+    subgraph "Your Local Machine"
+        B[User's Browser] -- "http://localhost:8080" --> F_PORT
 
----
+        subgraph Docker Network
+            direction LR
+            
+            subgraph Frontend Container
+                F_PORT[Port 8080] --> F_APP[Frontend App]
+            end
 
-## 🌟 Key Features & Skills Demonstrated
+            subgraph Backend Container
+                B_PORT[Port 5001] --> B_APP[Backend API]
+            end
+            
+            subgraph Redis Container
+                R_PORT[Port 6379] --> R_DB[Redis DB]
+            end
 
-* **Microservice Architecture:** Successfully designed and deployed a decoupled application, allowing for independent scaling and development of the frontend and backend.
-* **Containerization with Docker:** Wrote custom `Dockerfile`s for each service, demonstrating the ability to package applications into portable and reproducible container images.
-* **Kubernetes Deployment & Management:** Deployed and managed all services on AKS using declarative YAML manifest files, showcasing proficiency in `Deployments`, `Services`, and `Ingress`.
-* **Advanced Networking with Ingress:** Implemented an industry-standard NGINX Ingress controller to manage all external traffic, intelligently routing requests to the appropriate microservice based on the URL path.
-* **Cloud Infrastructure Provisioning:** All necessary Azure resources, including the AKS cluster and ACR, were provisioned and configured from scratch using the Azure Portal and CLI.
-* **Real-World Problem Solving:** Diagnosed and resolved a wide range of complex, real-world issues, including:
-    * Azure subscription limitations (VM sizes, availability zones, addon restrictions).
-    * Container image pull permissions (`ImagePullBackOff`).
-    * Complex Ingress routing bugs (404 errors, path rewriting, static file serving).
-    * Cross-Origin Resource Sharing (CORS) errors between services.
+            F_APP -- "fetch('http://localhost:5001/...')" --> B_PORT
+            B_APP -- "connects to 'redis'" --> R_PORT
+        end
+    end
 
----
+    style B fill:#d1e7dd,stroke:#333,stroke-width:2px
 
-## ⚙️ How to Run
+🛠️ Tech Stack & Key Concepts
+Category
 
+Technology / Concept
+
+Cloud Provider
+
+Microsoft Azure
+
+CI/CD
+
+GitHub Actions
+
+Containerization
+
+Docker, Docker Compose
+
+Orchestration
+
+Azure Kubernetes Service (AKS)
+
+Container Registry
+
+Azure Container Registry (ACR)
+
+Networking
+
+NGINX Ingress Controller, Kubernetes Services
+
+Backend
+
+Python, Flask, Redis
+
+Frontend
+
+Python, Flask, JavaScript, HTML/CSS, GSAP
+
+Deployment
+
+Declarative YAML, kubectl, Helm
+
+🌟 Key Features & Skills Demonstrated
+End-to-End CI/CD Automation: Implemented a full CI/CD pipeline using GitHub Actions that automatically builds, versions, and deploys the entire application to Kubernetes on every push to the main branch.
+
+Microservice Architecture: Successfully designed and deployed a decoupled application, allowing for independent scaling and development of the frontend and backend.
+
+Containerization & Versioning: Wrote custom Dockerfiles for each service and used commit SHAs as unique image tags, demonstrating best practices for building and versioning container images.
+
+Kubernetes Deployment & Management: Deployed and managed all services on AKS using declarative YAML manifest files, showcasing proficiency in Deployments, Services, and Ingress.
+
+Advanced Networking with Ingress: Implemented an industry-standard NGINX Ingress controller to manage all external traffic, intelligently routing requests to the appropriate microservice based on the URL path.
+
+Cloud Infrastructure Provisioning: All necessary Azure resources, including the AKS cluster and ACR, were provisioned and configured from scratch using the Azure CLI.
+
+Real-World Problem Solving: Diagnosed and resolved a wide range of complex, real-world issues, including:
+
+Azure subscription limitations (VM sizes, availability zones, addon restrictions).
+
+Container image pull permissions (ImagePullBackOff).
+
+Complex Ingress routing bugs (404 errors, path rewriting, static file serving).
+
+Cross-Origin Resource Sharing (CORS) errors between services.
+
+⚙️ How to Run
 The entire application state is defined in code and YAML manifests within this repository.
 
-### Local Development (Docker Compose)
-1.  Ensure Docker Desktop is running.
-2.  Navigate to the project's root directory.
-3.  Run `docker-compose up --build`.
-4.  Access the application at `http://localhost:8080`.
+Cloud Deployment (Automated via GitHub Actions)
+Fork this repository.
 
-### Cloud Deployment (Azure)
-1.  Provision an Azure Resource Group, ACR, and AKS cluster.
-2.  Build and push the `frontend` and `backend` Docker images to your ACR.
-3.  Install the NGINX Ingress Controller via Helm.
-4.  Update the image paths in the `-deployment.yaml` files to point to your ACR.
-5.  Apply all the YAML manifests to the cluster:
-    ```bash
-    kubectl apply -f redis-deployment.yaml
-    kubectl apply -f backend-deployment.yaml
-    kubectl apply -f frontend-deployment.yaml
-    kubectl apply -f ingress.yaml
-    ```
-6.  Get the public IP address of the Ingress and access the application in your browser:
-    ```bash
-    kubectl get ingress
-    ```
+Create Azure Resources: Provision an Azure Resource Group, ACR, and AKS cluster.
 
----
+Create a Service Principal: Generate credentials for GitHub Actions to log in to Azure.
 
-## 📈 Project Status
+Add GitHub Secrets: Add the AZURE_CREDENTIALS to your repository's secrets.
 
+Push a change to the main branch. The GitHub Actions workflow will automatically build and deploy the entire application.
+
+Get the public IP address of the Ingress to access the application:
+
+kubectl get ingress
+
+Local Development (Docker Compose)
+Ensure Docker Desktop is running.
+
+Navigate to the project's root directory.
+
+Run docker-compose up --build.
+
+Access the application at http://localhost:8080.
+
+📈 Project Status
 The application is fully functional. Future improvements could include:
-* Adding a custom domain name and TLS certificate.
-* Implementing a full CI/CD pipeline with GitHub Actions to automate the build and deploy process.
-* Adding analytics to track link clicks.
-* Persisting Redis data to a volume to survive pod restarts.
+
+Adding a custom domain name and TLS certificate.
+
+Implementing automated testing in the CI/CD pipeline.
+
+Adding analytics to track link clicks.
+
+Persisting Redis data to a volume to survive pod restarts.
