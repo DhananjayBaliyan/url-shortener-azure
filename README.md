@@ -23,30 +23,29 @@ This project utilizes a modern, cloud-native architecture designed for scalabili
 
 This diagram illustrates the flow of traffic from a user's browser through the Azure cloud infrastructure to the appropriate microservice.
 
-![Azure Architecture Diagram](Azure Architecture Diagram.jpg)
+![Azure Architecture Diagram](Azure%20Architecture%20Diagram.jpg)
 
-**What to include in the diagram:**
+**What’s shown in the diagram:**
 * A "User" icon outside the cloud.
 * An arrow to the "NGINX Ingress Controller" (with its Public IP).
 * The Ingress routing traffic based on the path:
-    * `/` requests go to the `Frontend Service`.
-    * `/api` requests go to the `Backend Service`.
+  * `/` requests go to the `Frontend Service`.
+  * `/api` requests go to the `Backend Service`.
 * Boxes for the `Frontend Pods`, `Backend Pod`, and `Redis Pod` inside the AKS Cluster.
-* Show the `Backend Service` communicating with the `Redis Service`.
+* The `Backend Service` communicates with the `Redis Service`.
 
 ### Local Development Architecture (Docker Compose)
 
 This diagram shows how the same containerized services are run locally for development and testing using Docker Compose.
 
-![Docker Compose Architecture Diagram](Docker Compose Architecture Diagram.jpg)
+![Docker Compose Architecture Diagram](Docker%20Compose%20Architecture%20Diagram.jpg)
 
-**What to include in the diagram:**
+**What’s shown in the diagram:**
 * A box for "Your Local Machine".
-* Inside, show the Browser accessing `localhost:8080`.
-* Show a `Docker Network`.
-* Inside the network, have three boxes: `Frontend Container`, `Backend Container`, and `Redis Container`.
-* Show the `Frontend Container` communicating with the `Backend Container` over the Docker Network.
-* Show the `Backend Container` communicating with the `Redis Container`.
+* Inside, the Browser accesses `localhost:8080`.
+* A `Docker Network`.
+* Three containers: `Frontend`, `Backend`, and `Redis`.
+* `Frontend` communicates with `Backend`, which communicates with `Redis`.
 
 ---
 
